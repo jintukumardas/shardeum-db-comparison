@@ -19,12 +19,21 @@ This tool compares account balance and nonce data between:
 
 ## Usage
 
+Build using cargo:
+```bash
+cargo build
+```
+
+Run the tool:
 ```bash
 # Basic usage (shows only mismatches)
 ./target/debug/shardeum-db-comparison -a <archiver_db_path> -n <nodes_folder_path>
 
 # Verbose mode (shows all account comparisons)
 ./target/debug/shardeum-db-comparison -a <archiver_db_path> -n <nodes_folder_path> -v
+
+# Save accounts spread in a CSV file
+./target/debug/shardeum-db-comparison -a <archiver_db_path> -n <nodes_folder_path> -o <output_csv_path>
 ```
 
 ### Example

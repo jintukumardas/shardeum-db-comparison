@@ -3,18 +3,6 @@
 version = 3
 
 [[package]]
-name = "account_db_compare"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "clap",
- "rusqlite",
- "serde",
- "serde_json",
- "walkdir",
-]
-
-[[package]]
 name = "ahash"
 version = "0.8.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -323,6 +311,18 @@ dependencies = [
  "memchr",
  "ryu",
  "serde",
+]
+
+[[package]]
+name = "shardeum-db-comparison"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "clap",
+ "rusqlite",
+ "serde",
+ "serde_json",
+ "walkdir",
 ]
 
 [[package]]
