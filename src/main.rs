@@ -6,6 +6,8 @@ use rusqlite::{Connection, Row};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use walkdir::WalkDir;
+use std::fs::File;
+use std::io::Write;
 
 #[derive(Parser)]
 #[command(name = "account_db_compare")]
@@ -19,6 +21,9 @@ struct Args {
     
     #[arg(short = 'v', long, help = "Print all data (not just mismatches)", default_value = "false")]
     verbose: bool,
+    
+    #[arg(short = 'o', long, help = "Output CSV file path", default_value = "account_counts.csv")]
+    output_csv: PathBuf,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -98,6 +103,9 @@ fn main() -> Result<()> {
     
     let node_accounts = load_node_accounts(&args.nodes_folder)
         .context("Failed to load node accounts")?;
+    
+    generate_account_count_csv(&archiver_accounts, &node_accounts, &args.output_csv)
+        .context("Failed to generate CSV")?;
     
     compare_accounts(&archiver_accounts, &node_accounts, args.verbose);
     
@@ -220,6 +228,43 @@ fn extract_node_name(db_path: &Path) -> String {
         .and_then(|n| n.to_str())
         .unwrap_or("unknown")
         .to_string()
+}
+
+fn generate_account_count_csv(
+    archiver_accounts: &HashMap<String, AccountEntry>,
+    node_accounts: &HashMap<String, Vec<AccountEntry>>,
+    output_path: &Path,
+) -> Result<()> {
+    let mut file = File::create(output_path)
+        .context("Failed to create CSV file")?;
+    
+    writeln!(file, "account_id,node_count")
+        .context("Failed to write CSV header")?;
+    
+    let mut all_account_ids = std::collections::HashSet::new();
+    
+    for account_id in archiver_accounts.keys() {
+        all_account_ids.insert(account_id.clone());
+    }
+    
+    for account_id in node_accounts.keys() {
+        all_account_ids.insert(account_id.clone());
+    }
+    
+    let mut account_list: Vec<String> = all_account_ids.into_iter().collect();
+    account_list.sort();
+    
+    for account_id in account_list {
+        let node_count = node_accounts.get(&account_id)
+            .map(|entries| entries.len())
+            .unwrap_or(0);
+        
+        writeln!(file, "{},{}", account_id, node_count)
+            .context("Failed to write CSV row")?;
+    }
+    
+    println!("CSV file generated: {}", output_path.display());
+    Ok(())
 }
 
 fn compare_accounts(
